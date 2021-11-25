@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import Note from '../components/Note';
+import Note from './components/Note';
 
 const App = ({notes}) => {
 
