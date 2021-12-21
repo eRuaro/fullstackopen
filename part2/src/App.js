@@ -1,13 +1,26 @@
-import logo from './logo.svg';
 import './App.css';
 import Note from './components/Note';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
-const App = ({notes}) => {
+const App = () => {
 
-  const [appNotes, setNotes] = useState(notes)
+  const [appNotes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
+
+  // useEffect is executed immediately after the component is rendered
+  const hook = () => {
+    console.log('effect');
+
+    axios.get('http://localhost:3001/notes').then(response => {
+      console.log('promise fulfilled');
+      setNotes(response.data)
+    })
+  }
+  useEffect(hook, []); // [] means useEffect is only ran with first render
+
+  console.log('render', appNotes.length, 'notes');
 
   const notesToShow = showAll ? appNotes : appNotes.filter(
     note => note.important
