@@ -123,14 +123,14 @@
         "important": true,
         "id": 7
       },
-      "important": true,
+      "important": false,
       "id": 1
     },
     {
       "id": 2,
       "content": "Browser can execute only JavaScript",
       "date": "2019-05-30T18:39:34.091Z",
-      "important": false
+      "important": true
     },
     {
       "id": 3,
@@ -147,13 +147,13 @@
     {
       "content": "hey",
       "date": "2022-01-11T00:44:47.835Z",
-      "important": false,
+      "important": true,
       "id": 5
     },
     {
       "content": "hey",
       "date": "2022-01-11T00:47:17.326Z",
-      "important": true,
+      "important": false,
       "id": 6
     },
     {

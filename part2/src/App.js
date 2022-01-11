@@ -14,8 +14,8 @@ const App = () => {
   const hook = () => {
     console.log('effect');
 
-    noteService.getAll().then(response => {
-      setNotes(response.data)
+    noteService.getAll().then(initialNotes => {
+      setNotes(initialNotes)
     })
   }
 
@@ -38,8 +38,8 @@ const App = () => {
     }
 
     // posts data to the server
-    noteService.create(noteObject).then(response => {
-      setNotes(appNotes.concat(response.data))
+    noteService.create(noteObject).then(returnedNote => {
+      setNotes(appNotes.concat(returnedNote))
       setNewNote('')
     })
     // setNotes(appNotes.concat(noteObject))
@@ -64,8 +64,12 @@ const App = () => {
     // if note.id !== id is true, we simply copy the item from the old 
     // array into the new array. If the condition is false, then the 
     // note object returned by the server is added to the array instead.
-    noteService.update(id, changedNote).then(response => {
-      setNotes(appNotes.map(note => note.id !== id ? note : response.data))
+    noteService.update(id, changedNote).then(returnedNote => {
+      setNotes(appNotes.map(note => note.id !== id ? note : returnedNote))
+    }).catch(error => {
+      alert(`the note '${note.content}' was already removed from server`)
+      // returns array of notes whose id doesn't match the one of the errored note
+      setNotes(appNotes.filter(n => n.id !== id))
     })
   }
 
