@@ -22,6 +22,7 @@ const App = () => {
 
   console.log('render', appNotes.length, 'notes');
 
+  // shows notes
   const notesToShow = showAll ? appNotes : appNotes.filter(
     note => note.important
   )
@@ -32,17 +33,43 @@ const App = () => {
       content: newNote,
       date: new Date().toISOString(),
       important: Math.random() < 0.5,
-      id: appNotes.length + 1,
+      // id: appNotes.length + 1, server generates its own id
     }
 
-    setNotes(appNotes.concat(noteObject))
-    setNewNote('')
-    console.log('button clicked', event.target)
+    // posts data to the server
+    axios.post('http://localhost:3001/notes', noteObject).
+      then(response => {
+        // console.log(response)
+        // posted data is added to the Notes array
+        setNotes(appNotes.concat(response.data))
+        setNewNote('')
+      })
+    // setNotes(appNotes.concat(noteObject))
+    // setNewNote('')
+    // console.log('button clicked', event.target)
   }
 
   const handleNoteChange = (event) => {
     console.log(event.target.value)
     setNewNote(event.target.value)
+  }
+
+  const toggleImportanceOf = (id) => {
+    console.log(`importance of ${id} needs to be toggled`)
+    const url = `http://localhost:3001/notes/${id}`
+    const note = appNotes.find(n => n.id === id)
+    // ...note creates a copy of the note
+    const changedNote = {...note, important: !note.important}
+
+    // The map method creates a new array by mapping every item 
+    // from the old array into an item in the new array. 
+    // In our example, the new array is created conditionally so that 
+    // if note.id !== id is true, we simply copy the item from the old 
+    // array into the new array. If the condition is false, then the 
+    // note object returned by the server is added to the array instead.
+    axios.put(url, changedNote).then(response => {
+      setNotes(appNotes.map(note => note.id !== id ? note : response.data))
+    })
   }
 
   return (
@@ -54,8 +81,12 @@ const App = () => {
         </button>
       </div>
       <ul>
-        {notesToShow.map(note => 
-          <Note key={note.id} note={note} />
+        {notesToShow.map((note, i) => 
+          <Note 
+            key={i} 
+            note={note} 
+            toggleImportance={() => toggleImportanceOf(note.id)}
+          />
         )}
       </ul>
       <form onSubmit={addNote}>
