@@ -2,6 +2,7 @@ import './App.css';
 import Note from './components/Note';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import noteService from './services/notes'
 
 const App = () => {
 
@@ -13,11 +14,11 @@ const App = () => {
   const hook = () => {
     console.log('effect');
 
-    axios.get('http://localhost:3001/notes').then(response => {
-      console.log('promise fulfilled');
+    noteService.getAll().then(response => {
       setNotes(response.data)
     })
   }
+
   useEffect(hook, []); // [] means useEffect is only ran with first render
 
   console.log('render', appNotes.length, 'notes');
@@ -37,13 +38,10 @@ const App = () => {
     }
 
     // posts data to the server
-    axios.post('http://localhost:3001/notes', noteObject).
-      then(response => {
-        // console.log(response)
-        // posted data is added to the Notes array
-        setNotes(appNotes.concat(response.data))
-        setNewNote('')
-      })
+    noteService.create(noteObject).then(response => {
+      setNotes(appNotes.concat(response.data))
+      setNewNote('')
+    })
     // setNotes(appNotes.concat(noteObject))
     // setNewNote('')
     // console.log('button clicked', event.target)
@@ -56,7 +54,6 @@ const App = () => {
 
   const toggleImportanceOf = (id) => {
     console.log(`importance of ${id} needs to be toggled`)
-    const url = `http://localhost:3001/notes/${id}`
     const note = appNotes.find(n => n.id === id)
     // ...note creates a copy of the note
     const changedNote = {...note, important: !note.important}
@@ -67,7 +64,7 @@ const App = () => {
     // if note.id !== id is true, we simply copy the item from the old 
     // array into the new array. If the condition is false, then the 
     // note object returned by the server is added to the array instead.
-    axios.put(url, changedNote).then(response => {
+    noteService.update(id, changedNote).then(response => {
       setNotes(appNotes.map(note => note.id !== id ? note : response.data))
     })
   }
