@@ -1,14 +1,18 @@
 import './App.css';
 import Note from './components/Note';
+import Notification from './components/Notification';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import noteService from './services/notes'
+import Footer from './components/Footer';
 
 const App = () => {
 
   const [appNotes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
+  // default value of no error
+  const [errorMessage, setErrorMessage] = useState(null)
 
   // useEffect is executed immediately after the component is rendered
   const hook = () => {
@@ -67,7 +71,13 @@ const App = () => {
     noteService.update(id, changedNote).then(returnedNote => {
       setNotes(appNotes.map(note => note.id !== id ? note : returnedNote))
     }).catch(error => {
-      alert(`the note '${note.content}' was already removed from server`)
+      setErrorMessage(
+        `Note '${note.content}' was already removed from server`
+      );
+
+      setTimeout(() => {
+        setErrorMessage(null)
+      }, 5000);
       // returns array of notes whose id doesn't match the one of the errored note
       setNotes(appNotes.filter(n => n.id !== id))
     })
@@ -76,6 +86,7 @@ const App = () => {
   return (
     <div>
       <h1>Notes</h1>
+      <Notification message={errorMessage}/>
       <div>
         <button onClick={() => setShowAll(!showAll)}>
           show {showAll ? 'important' : 'all'}
@@ -97,6 +108,7 @@ const App = () => {
           />
           <button type="submit"> save </button>
       </form>
+      <Footer/>
     </div>
   )
 }
