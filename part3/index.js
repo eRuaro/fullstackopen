@@ -1,5 +1,6 @@
 const { request } = require('express');
 const express = require('express');
+const nodemon = require('nodemon');
 const app = express();
 
 let notes = [
@@ -29,6 +30,30 @@ app.get('/', (request, response) => {
 
 app.get('/api/notes', (request, response) => {
     response.json(notes)
+});
+
+// :id -> adds it to request parameters
+// NOTE: request parameters defaults to a String
+app.get('/api/notes/:id', (request, response) => {
+    const id = Number(request.params.id);
+    const note = notes.find(note => {
+        // returns the note whose id is equal to the requested id
+        return note.id === id
+    });
+
+    if (note) {
+        response.json(note);
+    } else {
+        response.status(404).end();
+    }
+});
+
+app.delete('/api/notes/:id', (request, response) => {
+    const id = Number(request.params.id);
+    // filters out the note that matches the reuqested id 
+    notes = notes.filter(note => note.id !== id);
+
+    response.status(204).end();
 });
 
 app.get('/github', (request, response) => {
