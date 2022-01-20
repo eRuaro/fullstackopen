@@ -36,6 +36,15 @@ app.get('/github', (request, response) => {
     response.redirect(githubAccount);
 });
 
+app.get('/neil', (request, response) => {
+    const neilJson = {
+        name: "Neil",
+        age: "17",
+        company: "CertiK",
+    }
+    response.json(neilJson);
+});
+
 
 const PORT = 3001;
 app.listen(PORT, () => {
