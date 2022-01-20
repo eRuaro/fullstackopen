@@ -1,3 +1,4 @@
+const { request } = require('express');
 const express = require('express');
 const app = express();
 
@@ -30,7 +31,15 @@ app.get('/api/notes', (request, response) => {
     response.json(notes)
 });
 
+app.get('/github', (request, response) => {
+    const githubAccount = "https://github.com/eRuaro";
+    response.redirect(githubAccount);
+});
+
+
 const PORT = 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+// Nodemon: For automatic restart of server when code changes
