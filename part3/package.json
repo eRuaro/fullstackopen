@@ -1,0 +1,12 @@
+{
+  "name": "part3",
+  "version": "1.0.0",
+  "description": "Code for part 3: Node.js and Express of the FullStack Open course!",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Neil Ruaro",
+  "license": "MIT"
+}
