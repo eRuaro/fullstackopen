@@ -3,6 +3,9 @@ const app = express();
 const cors = require('cors');
 
 app.use(cors());
+//To make express show static content, the page index.html and the JavaScript, etc., 
+// it fetches, we need a built-in middleware from express called static.
+app.use(express.static('build'));
 
 let notes = [
     {
