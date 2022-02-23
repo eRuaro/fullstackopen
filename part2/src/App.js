@@ -37,10 +37,6 @@ const App = () => {
         setNotes(notes.concat(returnedNote))
         setNewNote('')
       })
-
-    noteService.getAll().then(returnedNotes => {
-      setNotes(returnedNotes)
-    })
   }
 
   const handleNoteChange = (event) => {
