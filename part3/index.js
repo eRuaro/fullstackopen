@@ -1,11 +1,39 @@
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 app.use(cors());
 //To make express show static content, the page index.html and the JavaScript, etc., 
 // it fetches, we need a built-in middleware from express called static.
 app.use(express.static('build'));
+
+const url = process.env.MONGODB_URI
+
+mongoose.connect(url).then(result => {
+    console.log('connected to MongoDB')
+}).catch((error) => {
+    console.log('error connecting to MongoDB:', error.message)
+});
+
+const noteSchema = new mongoose.Schema({
+    content: String,
+    date: Date,
+    important: Boolean,
+})
+
+noteSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString()
+        delete returnedObject._id
+        delete returnedObject.__v
+    }
+})
+
+module.exports = mongoose.model('Note', noteSchema)
+
+const Note = mongoose.model('Note', noteSchema);
 
 let notes = [
     {
@@ -33,23 +61,17 @@ app.get('/', (request, response) => {
 });
 
 app.get('/api/notes', (request, response) => {
-    response.json(notes)
+    Note.find({}).then(notes => {
+        response.json(notes)
+    })
 });
 
 // :id -> adds it to request parameters
 // NOTE: request parameters defaults to a String
 app.get('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id);
-    const note = notes.find(note => {
-        // returns the note whose id is equal to the requested id
-        return note.id === id
-    });
-
-    if (note) {
-        response.json(note);
-    } else {
-        response.status(404).end();
-    }
+    Note.findById(request.params.id).then(note => {
+        response.json(note)
+    })
 });
 
 app.delete('/api/notes/:id', (request, response) => {
@@ -60,51 +82,25 @@ app.delete('/api/notes/:id', (request, response) => {
     response.status(204).end();
 });
 
-const generateId = () => {
-    const maxId = notes.length > 0 ? Math.max(...notes.map(n => n.id)) : 0
-
-    return maxId + 1;
-}
-
 app.post('/api/notes', (request, response) => {
-    const body = request.body;
+  const body = request.body
 
-    console.log(body);
+  if (body.content === undefined) {
+    return response.status(400).json({ error: 'content missing' })
+  }
 
-    if (!body.content) {
-        return response.status(400).json({
-            error: 'content is missing'
-        })
-    }
+  const note = new Note({
+    content: body.content,
+    important: body.important || false,
+    date: new Date(),
+  })
 
-    const note = {
-        content: body.content,
-        important: body.important || false,
-        date: new Date(),
-        id: generateId(),
-    }
+  note.save().then(savedNote => {
+    response.json(savedNote)
+  })
+})
 
-    notes = notes.concat(note)
-
-    response.json(note)
-});
-
-app.get('/github', (request, response) => {
-    const githubAccount = "https://github.com/eRuaro";
-    response.redirect(githubAccount);
-});
-
-app.get('/neil', (request, response) => {
-    const neilJson = {
-        name: "Neil",
-        age: "17",
-        company: "CertiK",
-    }
-    response.json(neilJson);
-});
-
-
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
