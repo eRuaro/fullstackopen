@@ -1,86 +1,28 @@
+const express = require('express')
+const app = express()
+const cors = require('cors')
 require('dotenv').config()
-const express = require('express');
-const app = express();
-const cors = require('cors');
-const mongoose = require('mongoose');
+const Note = require('./models/note')
 
-app.use(cors());
-//To make express show static content, the page index.html and the JavaScript, etc., 
-// it fetches, we need a built-in middleware from express called static.
-app.use(express.static('build'));
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
 
-const url = process.env.MONGODB_URI
+app.use(express.json())
 
-mongoose.connect(url).then(result => {
-    console.log('connected to MongoDB')
-}).catch((error) => {
-    console.log('error connecting to MongoDB:', error.message)
-});
+app.use(requestLogger)
 
-const noteSchema = new mongoose.Schema({
-    content: String,
-    date: Date,
-    important: Boolean,
+app.use(cors())
+
+app.use(express.static('build'))
+
+app.get('/', (req, res) => {
+  res.send('<h1>Hello World!</h1>')
 })
-
-noteSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString()
-        delete returnedObject._id
-        delete returnedObject.__v
-    }
-})
-
-module.exports = mongoose.model('Note', noteSchema)
-
-const Note = mongoose.model('Note', noteSchema);
-
-let notes = [
-    {
-        id: 1,
-        content: "HTML is easy",
-        date: "2019-05-30T17:30:31.098Z",
-        important: true,
-    },
-    {
-        id: 2,
-        content: "Browser can execute only Javascript",
-        date: "2020-05-30T17:30:31.098Z",
-        important: false,
-    },
-    {
-        id: 3,
-        content: "GET and POST are the most important methods",
-        date: "2019-05-30T17:30:31.098Z",
-        important: true,
-    }
-]
-
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-});
-
-app.get('/api/notes', (request, response) => {
-    Note.find({}).then(notes => {
-        response.json(notes)
-    })
-});
-
-// :id -> adds it to request parameters
-// NOTE: request parameters defaults to a String
-app.get('/api/notes/:id', (request, response) => {
-    Note.findById(request.params.id).then(note => {
-        response.json(note)
-    })
-});
-
-app.delete('/api/notes/:id', (request, response) => {
-    const id = Number(request.params.id);
-    // filters out the note that matches the reuqested id 
-    notes = notes.filter(note => note.id !== id);
-
-    response.status(204).end();
-});
 
 app.post('/api/notes', (request, response) => {
   const body = request.body
@@ -100,9 +42,68 @@ app.post('/api/notes', (request, response) => {
   })
 })
 
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+app.get('/api/notes', (request, response) => {
+  Note.find({}).then(notes => {
+    response.json(notes)
+  })
+})
 
-// Nodemon: For automatic restart of server when code changes
+app.delete('/api/notes/:id', (request, response, next) => {
+  Note.findByIdAndRemove(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+})
+
+app.get('/api/notes/:id', (request, response, next) => {
+  Note.findById(request.params.id)
+    .then(note => {
+      if (note) {
+        response.json(note)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => {
+      next(error)
+    })
+})
+
+app.put('/api/notes/:id', (request, response, next) => {
+  const body = request.body
+
+  const note = {
+    content: body.content,
+    important: body.important,
+  }
+
+  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+    .then(updatedNote => {
+      response.json(updatedNote)
+    })
+    .catch(error => next(error))
+})
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
