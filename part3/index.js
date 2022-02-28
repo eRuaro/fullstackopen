@@ -12,6 +12,10 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
+// The execution order of middleware is the same as the order that they are loaded into express with the app.use function. 
+// For this reason it is important to be careful when defining middleware.
+// Each app.use(middleware) is called every time a request is sent to the server.
+
 app.use(express.json())
 
 app.use(requestLogger)
@@ -27,6 +31,7 @@ app.get('/', (req, res) => {
 app.post('/api/notes', (request, response) => {
   const body = request.body
 
+  // based on noteSchema in models/note.js
   if (body.content === undefined) {
     return response.status(400).json({ error: 'content missing' })
   }
@@ -66,6 +71,9 @@ app.get('/api/notes/:id', (request, response, next) => {
       }
     })
     .catch(error => {
+      // The error that is passed forwards is given to the next function as a parameter. If next was called without a parameter, then the 
+      // execution would simply move onto the next route or middleware. If the next function is called with a parameter, then 
+      // the execution will continue to the error handler middleware.
       next(error)
     })
 })
@@ -101,6 +109,7 @@ const errorHandler = (error, request, response, next) => {
   next(error)
 }
 
+// this has to be the last loaded middleware.
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
