@@ -1,118 +1,121 @@
-const express = require('express')
-const app = express()
-const cors = require('cors')
-require('dotenv').config()
-const Note = require('./models/note')
+const express = require("express");
+const app = express();
+const cors = require("cors");
+require("dotenv").config();
+const Note = require("./models/note");
 
 const requestLogger = (request, response, next) => {
-  console.log('Method:', request.method)
-  console.log('Path:  ', request.path)
-  console.log('Body:  ', request.body)
-  console.log('---')
-  next()
-}
+  console.log("Method:", request.method);
+  console.log("Path:  ", request.path);
+  console.log("Body:  ", request.body);
+  console.log("---");
+  next();
+};
 
 // The execution order of middleware is the same as the order that they are loaded into express with the app.use function. 
 // For this reason it is important to be careful when defining middleware.
 // Each app.use(middleware) is called every time a request is sent to the server.
 
-app.use(express.json())
+app.use(express.json());
 
-app.use(requestLogger)
+app.use(requestLogger);
 
-app.use(cors())
+app.use(cors());
 
-app.use(express.static('build'))
+app.use(express.static("build"));
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello World!</h1>')
-})
+app.get("/", (req, res) => {
+  res.send("<h1>Hello World!</h1>");
+});
 
-app.post('/api/notes', (request, response) => {
-  const body = request.body
+app.post("/api/notes", (request, response, next) => {
+  const body = request.body;
 
   // based on noteSchema in models/note.js
   if (body.content === undefined) {
-    return response.status(400).json({ error: 'content missing' })
+    return response.status(400).json({ error: "content missing" });
   }
 
   const note = new Note({
     content: body.content,
     important: body.important || false,
     date: new Date(),
-  })
+  });
 
   note.save().then(savedNote => {
-    response.json(savedNote)
+    response.json(savedNote);
   })
-})
+    .catch(error => next(error));
+});
 
-app.get('/api/notes', (request, response) => {
+app.get("/api/notes", (request, response) => {
   Note.find({}).then(notes => {
-    response.json(notes)
-  })
-})
+    response.json(notes);
+  });
+});
 
-app.delete('/api/notes/:id', (request, response, next) => {
+app.delete("/api/notes/:id", (request, response, next) => {
   Note.findByIdAndRemove(request.params.id)
     .then(result => {
-      response.status(204).end()
+      console.log(result);
+      response.status(204).end();
     })
-    .catch(error => next(error))
-})
+    .catch(error => next(error));
+});
 
-app.get('/api/notes/:id', (request, response, next) => {
+app.get("/api/notes/:id", (request, response, next) => {
   Note.findById(request.params.id)
     .then(note => {
       if (note) {
-        response.json(note)
+        response.json(note);
       } else {
-        response.status(404).end()
+        response.status(404).end();
       }
     })
     .catch(error => {
       // The error that is passed forwards is given to the next function as a parameter. If next was called without a parameter, then the 
       // execution would simply move onto the next route or middleware. If the next function is called with a parameter, then 
       // the execution will continue to the error handler middleware.
-      next(error)
-    })
-})
+      next(error);
+    });
+});
 
-app.put('/api/notes/:id', (request, response, next) => {
-  const body = request.body
+app.put("/api/notes/:id", (request, response, next) => {
+  const { content, important } = request.body;
 
-  const note = {
-    content: body.content,
-    important: body.important,
-  }
-
-  Note.findByIdAndUpdate(request.params.id, note, { new: true })
+  Note.findByIdAndUpdate(
+    request.params.id, 
+    { content, important }, 
+    { new: true, runValidators: true, context: "query" }
+  )
     .then(updatedNote => {
-      response.json(updatedNote)
+      response.json(updatedNote);
     })
-    .catch(error => next(error))
-})
+    .catch(error => next(error));
+});
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
+  response.status(404).send({ error: "unknown endpoint" });
+};
 
-app.use(unknownEndpoint)
+app.use(unknownEndpoint);
 
 const errorHandler = (error, request, response, next) => {
-  console.error(error.message)
+  console.error(error.message);
 
-  if (error.name === 'CastError') {
-    return response.status(400).send({ error: 'malformatted id' })
+  if (error.name === "CastError") {
+    return response.status(400).send({ error: "malformatted id" });
+  } else if (error.name === "ValidationError") {
+    return response.status(400).json({ error: error.message });
   }
 
-  next(error)
-}
+  next(error);
+};
 
 // this has to be the last loaded middleware.
-app.use(errorHandler)
+app.use(errorHandler);
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on port ${PORT}`);
+});

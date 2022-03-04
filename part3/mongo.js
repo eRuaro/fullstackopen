@@ -1,42 +1,51 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
 if (process.argv.length<3) {
-  console.log('give password as argument')
-  process.exit(1)
+  console.log("give password as argument");
+  process.exit(1);
 }
 
-const password = process.argv[2]
+const password = process.argv[2];
 
 const url =
-  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/noteApp?retryWrites=true&w=majority`
+  `mongodb+srv://fullstack:${password}@cluster0.o1opl.mongodb.net/noteApp?retryWrites=true&w=majority`;
 
-mongoose.connect(url)
+mongoose.connect(url);
 
+// validation provided by moongoose
 const noteSchema = new mongoose.Schema({
-  content: String,
-  date: Date,
+  content: {
+    type: String,
+    minlength: 5,
+    required: true,
+  },
+  date: {
+    type: Date,
+    required: true
+  },
   important: Boolean,
-})
+});
 
-const Note = mongoose.model('Note', noteSchema)
+const Note = mongoose.model("Note", noteSchema);
 
 const note = new Note({
-  content: 'CSS is hard',
+  content: "CSS is hard",
   date: new Date(),
   important: false,
-})
+});
 
-if ( false ) {
+if (note) {
   note.save().then(result => {
-    console.log('note saved!')
-    mongoose.connection.close()
-  })
+    console.log(result);
+    console.log("note saved!");
+    mongoose.connection.close();
+  });
 }
 
 
 Note.find({}).then(result => {
   result.forEach(note => {
-    console.log(note)
-  })
-  mongoose.connection.close()
-})
+    console.log(note);
+  });
+  mongoose.connection.close();
+});
