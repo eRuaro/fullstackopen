@@ -117,7 +117,7 @@ describe("when there is initially one user in db", () => {
     beforeEach(async () => {
         await User.deleteMany({});
 
-        const passwordHash = await bcrypt.hash("sekret", 10);
+        const passwordHash = await bcrypt.hash("secret", 10);
         const user = new User({ username: "root", passwordHash });
 
         await user.save();
@@ -129,7 +129,7 @@ describe("when there is initially one user in db", () => {
         const newUser = {
             username: "neil",
             name: "Neil",
-            password: "hello"
+            password: "neil"
         };
 
         await api.post("/api/users").send(newUser).expect(201).expect("Content-Type", /application\/json/);
@@ -147,7 +147,7 @@ describe("when there is initially one user in db", () => {
         const newUser = {
             username: "root",
             name: "Neil",
-            password: "hello"
+            password: "neil"
         };
 
         const result = await api.post("/api/users").send(newUser).expect(400).expect("Content-Type", /application\/json/);
