@@ -4,7 +4,7 @@ const app = express();
 const { PORT } = require('./util/config');
 const { connectToDatabase } = require("./util/db");
 
-const notesRouter = require("./controller/notes");
+const notesRouter = require("./controllers/notes");
 const usersRouter = require("./controllers/users");
 const loginRouter = require("./controllers/login");
 

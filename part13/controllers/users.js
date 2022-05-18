@@ -1,6 +1,6 @@
 const router = require("express").Router();
 
-const { User } = require("../models");
+const { User, Note } = require("../models");
 
 router.get("/", async (req, res) => {
     const users = await User.findAll();
@@ -9,7 +9,8 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
     try {
-        const user = await User.create(req.body);
+        const user = await User.findOne();
+        const note = await Note.create({...req.body, userId: user.id});
         res.json(user);
     } catch (error) {
         return res.status(400).json({ error });
