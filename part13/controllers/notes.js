@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const { Note, User } = require("../models");
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 const noteFinder = async (req, res, next) => {
     req.note = await Note.findByPk(req.params.id);
@@ -32,6 +32,12 @@ router.get("/", async (req, res) => {
         important = req.query.important === "true";
     }
 
+    if (req.query.search) {
+        where.content = {
+            [Op.substring]: req.query.search
+        }
+    }
+
     const notes = await Note.findall({
         attributes: {
             exclude: ["userId"]
@@ -40,12 +46,7 @@ router.get("/", async (req, res) => {
             model: User, 
             attributes: ["name"]
         },
-        where: {
-            important,
-            content: {
-                [Op.substring]: req.query.search ? req.query.search : ""
-            }
-        }
+        where
     });
 
     res.json(notes);
