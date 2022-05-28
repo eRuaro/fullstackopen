@@ -1,9 +1,9 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes } = require('sequelize')
 
 module.exports = {
-    // defines how the database should be modified when migration is performed
+    // defines how database should be modified when migration is performed
     up: async ({ context: queryInterface }) => {
-        await queryInterface.createTable("notes", {
+        await queryInterface.createTable('notes', {
             id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
@@ -11,7 +11,7 @@ module.exports = {
             },
             content: {
                 type: DataTypes.TEXT,
-                allowNull: false,
+                allowNull: false
             },
             important: {
                 type: DataTypes.BOOLEAN
@@ -20,7 +20,7 @@ module.exports = {
                 type: DataTypes.DATE
             },
         })
-        await queryInterface.createTable("users", {
+        await queryInterface.createTable('users', {
             id: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
@@ -28,27 +28,24 @@ module.exports = {
             },
             username: {
                 type: DataTypes.STRING,
-                primaryKey: true,
-                autoIncrement: true
+                unique: true,
+                allowNull: false
             },
             name: {
                 type: DataTypes.STRING,
-                allowNull: false,
+                allowNull: false
             },
         })
-        // adds foreign key to "notes" table called "user_id" that references the creator of a note
-        await queryInterface.addColumn("notes", "user_id", {
+        // adds foreign key to "notes" table referencing the creator of the note
+        await queryInterface.addColumn('notes', 'user_id', {
             type: DataTypes.INTEGER,
             allowNull: false,
-            references: {
-                model: "users",
-                key: "id"
-            },
+            references: { model: 'users', key: 'id' },
         })
     },
-    // tells how to undo the migration if there is a need to do so
+    // tells how to undo migration if there is a need to do so
     down: async ({ context: queryInterface }) => {
-        await queryInterface.dropTable("notes")
-        await queryInterface.dropTable("users")
+        await queryInterface.dropTable('notes')
+        await queryInterface.dropTable('users')
     },
 }
